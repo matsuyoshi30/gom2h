@@ -134,3 +134,28 @@ func TestBlockquote(t *testing.T) {
 		}
 	}
 }
+
+func TestList(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{`- list1`, []byte(`<ul><li>list1</li></ul>`)},
+		{`- list1
+- list2`, []byte(`<ul><li>list1</li><li>list2</li></ul>`)},
+		{`- list1
+- list2
+  - list2-1
+- list3`, []byte(`<ul><li>list1</li><li>list2</li><ul><li>list2-1</li></ul><li>list3</li></ul>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}

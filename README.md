@@ -27,7 +27,7 @@ func main() {
 - [x] Emphasis
 - [x] Strong
 - [x] Link
-- [ ] List
+- [x] List (Unorder)
 - [ ] Code Block
 
 ## License

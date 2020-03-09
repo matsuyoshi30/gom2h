@@ -6,14 +6,21 @@ import (
 	"regexp"
 )
 
+var nl = []byte("\n")
+
 // main entry point
 func Run(input []byte) ([]byte, error) {
-	l, err := conv(input)
-	if err != nil {
-		return nil, err
+	conved := make([]Line, 0)
+	for _, line := range bytes.Split(input, nl) {
+		l, err := conv(line)
+		if err != nil {
+			return nil, err
+		}
+
+		conved = append(conved, l)
 	}
 
-	return render(l), nil
+	return render(conved), nil
 }
 
 // convert markdown line to Line
@@ -23,6 +30,7 @@ type LineType int
 const (
 	Header LineType = iota
 	Blockquote
+	List
 	Paragraph
 	NewLine
 )
@@ -40,6 +48,7 @@ var (
 	emphasisExp   = regexp.MustCompile(`.*([\*_]([^\*_]+)[\*_]).*`)
 	strongExp     = regexp.MustCompile(`.*([\*_]{2}([^\*_]+)[\*_]{2}).*`)
 	linkExp       = regexp.MustCompile(`.*(\[.+\])(\(.+\)).*`)
+	listExp       = regexp.MustCompile(`^ *(- )(.+)`)
 )
 
 func conv(line []byte) (Line, error) {
@@ -98,6 +107,13 @@ func conv(line []byte) (Line, error) {
 		return Line{Blockquote, loc[3], line[loc[4]:loc[5]], 0}, nil
 	}
 
+	if listExp.Match(line) {
+		loc := listExp.FindSubmatchIndex(line)
+		// - list
+		// -> line[loc[4]:loc[5]] // list
+		return Line{List, 0, line[loc[4]:loc[5]], loc[2] / 2}, nil
+	}
+
 	return Line{Paragraph, 0, line, 0}, nil
 }
 
@@ -105,23 +121,56 @@ func conv(line []byte) (Line, error) {
 
 type TagType int
 
-func render(line Line) []byte {
-	// render html
-	if line.ty == Header {
-		return []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))
-	}
-	if line.ty == Blockquote {
-		var stag string
-		var ctag string
-		for i := 0; i < line.lv; i++ {
-			stag = fmt.Sprintf(`<blockquote>%s`, stag)
-			ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+func render(lines []Line) []byte {
+	ret := make([]byte, 0)
+
+	for idx, line := range lines {
+		// render html
+		if line.ty == Header {
+			ret = append(ret, []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))...)
 		}
-		return []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))
-	}
-	if line.ty == Paragraph {
-		return []byte(fmt.Sprintf(`<p>%s</p>`, line.val))
+
+		if line.ty == Blockquote {
+			var stag string
+			var ctag string
+			for i := 0; i < line.lv; i++ {
+				stag = fmt.Sprintf(`<blockquote>%s`, stag)
+				ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+			}
+			ret = append(ret, []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))...)
+		}
+
+		if line.ty == List {
+			if (idx > 0 && lines[idx-1].ty != List) || idx == 0 {
+				ret = append(ret, []byte(`<ul>`)...)
+			}
+
+			if idx > 0 && lines[idx-1].dep < line.dep {
+				ret = append(ret, []byte(`<ul>`)...)
+			}
+
+			ret = append(ret, []byte(fmt.Sprintf(`<li>%s</li>`, line.val))...)
+
+			if idx < len(lines)-1 && line.dep > lines[idx+1].dep {
+				for d := line.dep - lines[idx+1].dep; d > 0; d-- {
+					ret = append(ret, []byte(`</ul>`)...)
+				}
+			}
+			if idx == len(lines)-1 && line.dep > 0 {
+				for d := line.dep; d > 0; d-- {
+					ret = append(ret, []byte(`</ul>`)...)
+				}
+			}
+
+			if (idx < len(lines)-1 && lines[idx+1].ty != List) || idx == len(lines)-1 {
+				ret = append(ret, []byte(`</ul>`)...)
+			}
+		}
+
+		if line.ty == Paragraph {
+			ret = append(ret, []byte(fmt.Sprintf(`<p>%s</p>`, line.val))...)
+		}
 	}
 
-	return nil
+	return ret
 }
