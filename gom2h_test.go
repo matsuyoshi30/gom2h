@@ -47,6 +47,27 @@ func TestStrong(t *testing.T) {
 	}
 }
 
+func TestEmphasisAndStrong(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{`***emphasis and strong***`, []byte(`<p><em><strong>emphasis and strong</strong></em></p>`)},
+		{`This is ***emphasis and strong*** sample1.`, []byte(`<p>This is <em><strong>emphasis and strong</strong></em> sample1.</p>`)},
+		{`This is ***multiple*** ***emphasis and strong*** sample2.`, []byte(`<p>This is <em><strong>multiple</strong></em> <em><strong>emphasis and strong</strong></em> sample2.</p>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}
+
 func TestHeader(t *testing.T) {
 	testcases := []struct {
 		input    string
