@@ -10,8 +10,30 @@ func TestEmphasis(t *testing.T) {
 		input    string
 		expected []byte
 	}{
+		{`*em*`, []byte(`<p><em>em</em></p>`)},
 		{`This is *em* sample1.`, []byte(`<p>This is <em>em</em> sample1.</p>`)},
 		{`This is *multiple* *em* sample2.`, []byte(`<p>This is <em>multiple</em> <em>em</em> sample2.</p>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}
+
+func TestStrong(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{`**strong**`, []byte(`<p><strong>strong</strong></p>`)},
+		{`This is **strong** sample1.`, []byte(`<p>This is <strong>strong</strong> sample1.</p>`)},
+		{`This is **multiple** **strong** sample2.`, []byte(`<p>This is <strong>multiple</strong> <strong>strong</strong> sample2.</p>`)},
 	}
 
 	for _, tt := range testcases {

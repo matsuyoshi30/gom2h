@@ -38,10 +38,23 @@ var (
 	headerExp     = regexp.MustCompile(`^(#){1,6} (.+)`)
 	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
 	emphasisExp   = regexp.MustCompile(`.*([\*_]([^\*_]+)[\*_]).*`)
+	strongExp     = regexp.MustCompile(`.*([\*_]{2}([^\*_]+)[\*_]{2}).*`)
 )
 
 func conv(line []byte) (Line, error) {
 	// inline
+	for strongExp.Match(line) {
+		loc := strongExp.FindSubmatchIndex(line)
+		// This is *em* sample
+		// -> line[loc[2]:loc[3]] // **st**
+		// -> line[loc[4]:loc[5]] // st
+		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:loc[2]]))
+		target := []byte(fmt.Sprintf(`<strong>%s</strong>`, line[loc[4]:loc[5]]))
+		aft := []byte(fmt.Sprintf(`%s`, line[loc[3]:]))
+
+		line = append(bef, append(target, aft...)...)
+	}
+
 	for emphasisExp.Match(line) {
 		loc := emphasisExp.FindSubmatchIndex(line)
 		// This is *em* sample
