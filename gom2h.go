@@ -38,12 +38,13 @@ type Line struct {
 var (
 	headerExp     = regexp.MustCompile(`^(#){1,6} (.+)`)
 	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
+	emphasis      = regexp.MustCompile(`.*([\*_]([^\*_]+)[\*_]).*`)
 )
 
 func conv(line []byte) (Line, error) {
-	// block
-
 	// inline
+
+	// block
 	if headerExp.Match(line) {
 		loc := headerExp.FindSubmatchIndex(line)
 		// ## Header2
@@ -66,10 +67,6 @@ func conv(line []byte) (Line, error) {
 // render html from Line
 
 type TagType int
-
-const (
-	TagHeader TagType = iota
-)
 
 func render(line Line) []byte {
 	// render html
