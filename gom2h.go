@@ -39,6 +39,7 @@ var (
 	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
 	emphasisExp   = regexp.MustCompile(`.*([\*_]([^\*_]+)[\*_]).*`)
 	strongExp     = regexp.MustCompile(`.*([\*_]{2}([^\*_]+)[\*_]{2}).*`)
+	linkExp       = regexp.MustCompile(`.*(\[.+\])(\(.+\)).*`)
 )
 
 func conv(line []byte) (Line, error) {
@@ -65,6 +66,19 @@ func conv(line []byte) (Line, error) {
 		aft := []byte(fmt.Sprintf(`%s`, line[loc[3]:]))
 
 		line = append(bef, append(target, aft...)...)
+	}
+
+	for linkExp.Match(line) {
+		loc := linkExp.FindSubmatchIndex(line)
+		// This is [link](https://example.org/)
+		// -> line[loc[2]:loc[3]] // [link]
+		// -> line[loc[4]:loc[5]] // (https://example.org/)
+		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:loc[2]]))
+		target := []byte(fmt.Sprintf(`<a href="%s">%s</a>`, line[loc[4]+1:loc[5]-1], line[loc[2]+1:loc[3]-1]))
+		aft := []byte(fmt.Sprintf(`%s`, line[loc[5]:]))
+
+		line = append(bef, append(target, aft...)...)
+
 	}
 
 	// block

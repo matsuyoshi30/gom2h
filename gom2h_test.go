@@ -68,6 +68,26 @@ func TestEmphasisAndStrong(t *testing.T) {
 	}
 }
 
+func TestLink(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{`[link](https://example.org/)`, []byte(`<p><a href="https://example.org/">link</a></p>`)},
+		{`This is [link](https://example.org/) test.`, []byte(`<p>This is <a href="https://example.org/">link</a> test.</p>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}
+
 func TestHeader(t *testing.T) {
 	testcases := []struct {
 		input    string
