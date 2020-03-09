@@ -10,6 +10,8 @@ var nl = []byte("\n")
 
 // main entry point
 func Run(input []byte) ([]byte, error) {
+	input = bytes.TrimSpace(input)
+
 	conved := make([]Line, 0)
 	for _, line := range bytes.Split(input, nl) {
 		l, err := conv(line)
