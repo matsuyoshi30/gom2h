@@ -30,3 +30,23 @@ func TestHeader(t *testing.T) {
 		}
 	}
 }
+
+func TestBlockquote(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{`> quote level1`, []byte(`<blockquote><p>quote level1</p></blockquote>`)},
+		{`>> quote level2`, []byte(`<blockquote><blockquote><p>quote level2</p></blockquote></blockquote>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}

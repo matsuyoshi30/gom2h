@@ -1,6 +1,7 @@
 package gom2h
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -22,6 +23,7 @@ type LineType int
 
 const (
 	Header LineType = iota
+	Blockquote
 	Paragraph
 	NewLine
 )
@@ -34,7 +36,8 @@ type Line struct {
 }
 
 var (
-	headerExp = regexp.MustCompile(`^(#){1,6} (.+)`)
+	headerExp     = regexp.MustCompile(`^(#){1,6} (.+)`)
+	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
 )
 
 func conv(line []byte) (Line, error) {
@@ -47,6 +50,14 @@ func conv(line []byte) (Line, error) {
 		// -> line[loc[0]:loc[3]] // ##
 		// -> line[loc[4]:loc[5]] // Header2
 		return Line{Header, loc[3], line[loc[4]:loc[5]], 0}, nil
+	}
+
+	if blockquoteExp.Match(line) {
+		loc := blockquoteExp.FindSubmatchIndex(line)
+		// > quote
+		// -> line[loc[0]:loc[3]] // >
+		// -> line[loc[4]:loc[4]] // quote
+		return Line{Blockquote, loc[3], line[loc[4]:loc[5]], 0}, nil
 	}
 
 	return Line{}, errors.New("unknown line")
@@ -64,6 +75,15 @@ func render(line Line) []byte {
 	// render html
 	if line.ty == Header {
 		return []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))
+	}
+	if line.ty == Blockquote {
+		var stag string
+		var ctag string
+		for i := 0; i < line.lv; i++ {
+			stag = fmt.Sprintf(`<blockquote>%s`, stag)
+			ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+		}
+		return []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))
 	}
 
 	return nil
