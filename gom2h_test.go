@@ -159,3 +159,23 @@ func TestList(t *testing.T) {
 		}
 	}
 }
+
+func TestCodeSpan(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{"`cs sample`", []byte(`<p><code>cs sample</code></p>`)},
+		{"This is `cs sample` sentence.", []byte(`<p>This is <code>cs sample</code> sentence.</p>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}

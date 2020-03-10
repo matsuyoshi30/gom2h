@@ -51,6 +51,7 @@ var (
 	strongExp     = regexp.MustCompile(`.*([\*_]{2}([^\*_]+)[\*_]{2}).*`)
 	linkExp       = regexp.MustCompile(`.*(\[.+\])(\(.+\)).*`)
 	listExp       = regexp.MustCompile(`^ *(- )(.+)`)
+	codespanExp   = regexp.MustCompile("`(.+)`")
 )
 
 func conv(line []byte) (Line, error) {
@@ -90,6 +91,13 @@ func conv(line []byte) (Line, error) {
 
 		line = append(bef, append(target, aft...)...)
 
+	}
+
+	for codespanExp.Match(line) {
+		loc := codespanExp.FindSubmatchIndex(line)
+		// This is `cs sample`.
+		// -> line[loc[2]:loc[3]] // cs sample
+		line = []byte(fmt.Sprintf(`%s<code>%s</code>%s`, line[:loc[2]-1], line[loc[2]:loc[3]], line[loc[3]+1:]))
 	}
 
 	// block
