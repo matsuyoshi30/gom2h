@@ -4,11 +4,25 @@ convert markdown to html
 
 ## Usage
 
+As a cli tool
+
+```
+$ go get -u github.com/matsuyoshi30/gom2h/cmd/gom2h # Installation
+
+$ gom2h <markdown filename>
+```
+
+As a go library
+
+```
+$ go get -u github.com/matsuyoshi30/gom2h # Installation
+```
+
 ```go
 import (
         "fmt"
 
-        "github.com/matsuyoshi30/gom2h"  
+        "github.com/matsuyoshi30/gom2h"
 )
 
 func main() {
@@ -28,7 +42,8 @@ func main() {
 - [x] Strong
 - [x] Link
 - [x] List (Unorder)
-- [ ] Code Block
+- [x] Code Block
+  - [ ] Syntax highlight (only when converting file)
 
 ## License
 
