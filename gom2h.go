@@ -33,6 +33,7 @@ const (
 	Header LineType = iota
 	Blockquote
 	List
+	CodeFence
 	Paragraph
 	NewLine
 )
@@ -51,7 +52,8 @@ var (
 	strongExp     = regexp.MustCompile(`.*([\*_]{2}([^\*_]+)[\*_]{2}).*`)
 	linkExp       = regexp.MustCompile(`.*(\[.+\])(\(.+\)).*`)
 	listExp       = regexp.MustCompile(`^ *(- )(.+)`)
-	codespanExp   = regexp.MustCompile("`(.+)`")
+	codespanExp   = regexp.MustCompile("[^`]*`([^`]+)`[^`]*")
+	codefenceExp  = regexp.MustCompile("^```(.*)")
 )
 
 func conv(line []byte) (Line, error) {
@@ -124,6 +126,10 @@ func conv(line []byte) (Line, error) {
 		return Line{List, 0, line[loc[4]:loc[5]], loc[2] / 2}, nil
 	}
 
+	if codefenceExp.Match(line) {
+		return Line{CodeFence, 0, nil, 0}, nil
+	}
+
 	return Line{Paragraph, 0, line, 0}, nil
 }
 
@@ -134,6 +140,7 @@ type TagType int
 func render(lines []Line) []byte {
 	ret := make([]byte, 0)
 
+	inCodeFence := false
 	for idx, line := range lines {
 		// render html
 		if line.ty == Header {
@@ -177,8 +184,21 @@ func render(lines []Line) []byte {
 			}
 		}
 
+		if line.ty == CodeFence {
+			if !inCodeFence {
+				ret = append(ret, []byte(`<pre><code>`)...)
+			} else {
+				ret = append(ret, []byte(`</code></pre>`)...)
+			}
+			inCodeFence = !inCodeFence
+		}
+
 		if line.ty == Paragraph {
-			ret = append(ret, []byte(fmt.Sprintf(`<p>%s</p>`, line.val))...)
+			if !inCodeFence {
+				ret = append(ret, []byte(fmt.Sprintf(`<p>%s</p>`, line.val))...)
+			} else {
+				ret = append(ret, []byte(fmt.Sprintf(`%s`, line.val))...)
+			}
 		}
 	}
 

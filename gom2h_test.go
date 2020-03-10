@@ -179,3 +179,24 @@ func TestCodeSpan(t *testing.T) {
 		}
 	}
 }
+
+func TestCodeFence(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{"```" + `
+code fence
+` + "```", []byte(`<pre><code>code fence</code></pre>`)},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}
