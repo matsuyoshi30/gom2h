@@ -22,6 +22,21 @@ const (
 	exitNG
 )
 
+var (
+	tmpl1 = []byte(`<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+`)
+	tmpl2 = []byte(`
+
+</body>
+</html>
+`)
+)
+
 func run(args []string) int {
 	fs := flag.NewFlagSet(name, flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
@@ -70,7 +85,15 @@ func run(args []string) int {
 		return exitNG
 	}
 	writer := bufio.NewWriter(outFile)
+	if _, err = writer.Write(tmpl1); err != nil {
+		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
+		return exitNG
+	}
 	if _, err = writer.Write(out); err != nil {
+		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
+		return exitNG
+	}
+	if _, err = writer.Write(tmpl2); err != nil {
 		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
 		return exitNG
 	}
