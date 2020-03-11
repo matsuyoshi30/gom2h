@@ -13,6 +13,8 @@ func TestEmphasis(t *testing.T) {
 		{`*em*`, []byte(`<p><em>em</em></p>`)},
 		{`This is *em* sample1.`, []byte(`<p>This is <em>em</em> sample1.</p>`)},
 		{`This is *multiple* *em* sample2.`, []byte(`<p>This is <em>multiple</em> <em>em</em> sample2.</p>`)},
+		{`This is _other_ em.`, []byte(`<p>This is <em>other</em> em.</p>`)},
+		{`This is _not* em.`, []byte(`<p>This is _not* em.</p>`)},
 	}
 
 	for _, tt := range testcases {
@@ -34,6 +36,8 @@ func TestStrong(t *testing.T) {
 		{`**strong**`, []byte(`<p><strong>strong</strong></p>`)},
 		{`This is **strong** sample1.`, []byte(`<p>This is <strong>strong</strong> sample1.</p>`)},
 		{`This is **multiple** **strong** sample2.`, []byte(`<p>This is <strong>multiple</strong> <strong>strong</strong> sample2.</p>`)},
+		{`This is **other** strong.`, []byte(`<p>This is <strong>other</strong> strong.</p>`)},
+		{`This is **not__ strong.`, []byte(`<p>This is **not__ strong.</p>`)},
 	}
 
 	for _, tt := range testcases {
@@ -55,6 +59,7 @@ func TestEmphasisAndStrong(t *testing.T) {
 		{`***emphasis and strong***`, []byte(`<p><em><strong>emphasis and strong</strong></em></p>`)},
 		{`This is ***emphasis and strong*** sample1.`, []byte(`<p>This is <em><strong>emphasis and strong</strong></em> sample1.</p>`)},
 		{`This is ***multiple*** ***emphasis and strong*** sample2.`, []byte(`<p>This is <em><strong>multiple</strong></em> <em><strong>emphasis and strong</strong></em> sample2.</p>`)},
+		{`___not***`, []byte(`<p>___not***</p>`)},
 	}
 
 	for _, tt := range testcases {

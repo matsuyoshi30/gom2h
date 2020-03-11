@@ -47,8 +47,8 @@ type Line struct {
 var (
 	headerExp     = regexp.MustCompile(`^(#){1,6} (.+)`)
 	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
-	emphasisExp   = regexp.MustCompile(`.*([\*_]([^\*_]+)[\*_]).*`)
-	strongExp     = regexp.MustCompile(`.*([\*_]{2}([^\*_]+)[\*_]{2}).*`)
+	emphasisExp   = regexp.MustCompile(`.*([\*]([^\*]+)[\*]).*|.*([_]([^_]+)[_]).*`)
+	strongExp     = regexp.MustCompile(`.*([\*]{2}([^\*]+)[\*]{2}).*|.*([_]{2}([^_]+)[_]{2}).*`)
 	linkExp       = regexp.MustCompile(`.*(\[.+\])(\(.+\)).*`)
 	listExp       = regexp.MustCompile(`^ *(- )(.+)`)
 	codespanExp   = regexp.MustCompile("[^`]*`([^`]+)`[^`]*")
@@ -62,9 +62,21 @@ func conv(line []byte) (Line, error) {
 		// This is *em* sample
 		// -> line[loc[2]:loc[3]] // **st**
 		// -> line[loc[4]:loc[5]] // st
-		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:loc[2]]))
-		target := []byte(fmt.Sprintf(`<strong>%s</strong>`, line[loc[4]:loc[5]]))
-		aft := []byte(fmt.Sprintf(`%s`, line[loc[3]:]))
+		// -> line[loc[6]:loc[7]] // __st__
+		// -> line[loc[8]:loc[9]] // em
+		s := loc[2]
+		c := loc[3]
+		ts := loc[4]
+		tc := loc[5]
+		if s == -1 && c == -1 && ts == -1 && tc == -1 {
+			s = loc[6]
+			c = loc[7]
+			ts = loc[8]
+			tc = loc[9]
+		}
+		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:s]))
+		target := []byte(fmt.Sprintf(`<strong>%s</strong>`, line[ts:tc]))
+		aft := []byte(fmt.Sprintf(`%s`, line[c:]))
 
 		line = append(bef, append(target, aft...)...)
 	}
@@ -74,9 +86,21 @@ func conv(line []byte) (Line, error) {
 		// This is *em* sample
 		// -> line[loc[2]:loc[3]] // *em*
 		// -> line[loc[4]:loc[5]] // em
-		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:loc[2]]))
-		target := []byte(fmt.Sprintf(`<em>%s</em>`, line[loc[4]:loc[5]]))
-		aft := []byte(fmt.Sprintf(`%s`, line[loc[3]:]))
+		// -> line[loc[6]:loc[7]] // _em_
+		// -> line[loc[8]:loc[9]] // em
+		s := loc[2]
+		c := loc[3]
+		ts := loc[4]
+		tc := loc[5]
+		if s == -1 && c == -1 && ts == -1 && tc == -1 {
+			s = loc[6]
+			c = loc[7]
+			ts = loc[8]
+			tc = loc[9]
+		}
+		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:s]))
+		target := []byte(fmt.Sprintf(`<em>%s</em>`, line[ts:tc]))
+		aft := []byte(fmt.Sprintf(`%s`, line[c:]))
 
 		line = append(bef, append(target, aft...)...)
 	}
