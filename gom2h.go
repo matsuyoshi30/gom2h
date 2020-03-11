@@ -18,7 +18,6 @@ func Run(input []byte) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		conved = append(conved, l)
 	}
 
@@ -135,19 +134,17 @@ func conv(line []byte) (Line, error) {
 
 // render html from Line
 
-type TagType int
-
 func render(lines []Line) []byte {
 	ret := make([]byte, 0)
 
 	inCodeFence := false
 	for idx, line := range lines {
 		// render html
-		if line.ty == Header {
+		switch line.ty {
+		case Header:
 			ret = append(ret, []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))...)
-		}
 
-		if line.ty == Blockquote {
+		case Blockquote:
 			var stag string
 			var ctag string
 			for i := 0; i < line.lv; i++ {
@@ -155,9 +152,8 @@ func render(lines []Line) []byte {
 				ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
 			}
 			ret = append(ret, []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))...)
-		}
 
-		if line.ty == List {
+		case List:
 			if (idx > 0 && lines[idx-1].ty != List) || idx == 0 {
 				ret = append(ret, []byte(`<ul>`)...)
 			}
@@ -182,18 +178,16 @@ func render(lines []Line) []byte {
 			if (idx < len(lines)-1 && lines[idx+1].ty != List) || idx == len(lines)-1 {
 				ret = append(ret, []byte(`</ul>`)...)
 			}
-		}
 
-		if line.ty == CodeFence {
+		case CodeFence:
 			if !inCodeFence {
 				ret = append(ret, []byte(`<pre><code>`)...)
 			} else {
 				ret = append(ret, []byte(`</code></pre>`)...)
 			}
 			inCodeFence = !inCodeFence
-		}
 
-		if line.ty == Paragraph {
+		case Paragraph:
 			if !inCodeFence {
 				ret = append(ret, []byte(fmt.Sprintf(`<p>%s</p>`, line.val))...)
 			} else {
