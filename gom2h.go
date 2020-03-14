@@ -150,7 +150,14 @@ func conv(line []byte) (Line, error) {
 	}
 
 	if codefenceExp.Match(line) {
-		return Line{CodeFence, 0, nil, 0}, nil
+		loc := codefenceExp.FindSubmatchIndex(line)
+		// ```go
+		// -> line[loc[2]:loc[3]] // go
+		var lang []byte
+		if loc[2] != loc[3] {
+			lang = line[loc[2]:loc[3]]
+		}
+		return Line{CodeFence, 0, lang, 0}, nil
 	}
 
 	return Line{Paragraph, 0, line, 0}, nil
@@ -205,7 +212,11 @@ func render(lines []Line) []byte {
 
 		case CodeFence:
 			if !inCodeFence {
-				ret = append(ret, []byte(`<pre><code>`)...)
+				if line.val != nil {
+					ret = append(ret, []byte(fmt.Sprintf(`<pre><code class="%s">`, line.val))...)
+				} else {
+					ret = append(ret, []byte(`<pre><code>`)...)
+				}
 			} else {
 				ret = append(ret, []byte(`</code></pre>`)...)
 			}

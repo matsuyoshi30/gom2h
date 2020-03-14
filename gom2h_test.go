@@ -193,6 +193,9 @@ func TestCodeFence(t *testing.T) {
 		{"```" + `
 code fence
 ` + "```", []byte(`<pre><code>code fence</code></pre>`)},
+		{"```go" + `
+fmt.Println("Hello world")
+` + "```", []byte(`<pre><code class="go">fmt.Println("Hello world")</code></pre>`)},
 	}
 
 	for _, tt := range testcases {
