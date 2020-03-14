@@ -43,7 +43,7 @@ func main() {
 - [x] Link
 - [x] List (Unorder)
 - [x] Code Block
-  - [ ] Syntax highlight (only when converting file)
+  - [x] Syntax highlight (only when converting file)
 
 ## License
 

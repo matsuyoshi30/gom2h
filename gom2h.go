@@ -229,6 +229,7 @@ func render(lines []Line) []byte {
 				ret = append(ret, []byte(`</code></pre>`)...)
 			}
 			inCodeFence = !inCodeFence
+			continue
 
 		case Paragraph:
 			if !inCodeFence {
