@@ -145,13 +145,25 @@ func TestList(t *testing.T) {
 		input    string
 		expected []byte
 	}{
-		{`- list1`, []byte(`<ul><li>list1</li></ul>`)},
+		{`- list1`, []byte(`<ul>
+<li>list1</li>
+</ul>`)},
 		{`- list1
-- list2`, []byte(`<ul><li>list1</li><li>list2</li></ul>`)},
+- list2`, []byte(`<ul>
+<li>list1</li>
+<li>list2</li>
+</ul>`)},
 		{`- list1
 - list2
   - list2-1
-- list3`, []byte(`<ul><li>list1</li><li>list2</li><ul><li>list2-1</li></ul><li>list3</li></ul>`)},
+- list3`, []byte(`<ul>
+<li>list1</li>
+<li>list2</li>
+<ul>
+<li>list2-1</li>
+</ul>
+<li>list3</li>
+</ul>`)},
 	}
 
 	for _, tt := range testcases {
@@ -192,10 +204,14 @@ func TestCodeFence(t *testing.T) {
 	}{
 		{"```" + `
 code fence
-` + "```", []byte(`<pre><code>code fence</code></pre>`)},
+` + "```", []byte(`<pre><code>
+code fence
+</code></pre>`)},
 		{"```go" + `
 fmt.Println("Hello world")
-` + "```", []byte(`<pre><code class="go">fmt.Println("Hello world")</code></pre>`)},
+` + "```", []byte(`<pre><code class="go">
+fmt.Println("Hello world")
+</code></pre>`)},
 	}
 
 	for _, tt := range testcases {

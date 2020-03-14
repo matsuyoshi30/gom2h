@@ -187,26 +187,31 @@ func render(lines []Line) []byte {
 		case List:
 			if (idx > 0 && lines[idx-1].ty != List) || idx == 0 {
 				ret = append(ret, []byte(`<ul>`)...)
+				ret = newline(ret)
 			}
 
 			if idx > 0 && lines[idx-1].dep < line.dep {
 				ret = append(ret, []byte(`<ul>`)...)
+				ret = newline(ret)
 			}
 
 			ret = append(ret, []byte(fmt.Sprintf(`<li>%s</li>`, line.val))...)
 
 			if idx < len(lines)-1 && line.dep > lines[idx+1].dep {
 				for d := line.dep - lines[idx+1].dep; d > 0; d-- {
+					ret = newline(ret)
 					ret = append(ret, []byte(`</ul>`)...)
 				}
 			}
 			if idx == len(lines)-1 && line.dep > 0 {
 				for d := line.dep; d > 0; d-- {
+					ret = newline(ret)
 					ret = append(ret, []byte(`</ul>`)...)
 				}
 			}
 
 			if (idx < len(lines)-1 && lines[idx+1].ty != List) || idx == len(lines)-1 {
+				ret = newline(ret)
 				ret = append(ret, []byte(`</ul>`)...)
 			}
 
@@ -229,7 +234,15 @@ func render(lines []Line) []byte {
 				ret = append(ret, []byte(fmt.Sprintf(`%s`, line.val))...)
 			}
 		}
+
+		if idx != len(lines)-1 {
+			ret = newline(ret)
+		}
 	}
 
 	return ret
+}
+
+func newline(ret []byte) []byte {
+	return append(ret, nl...)
 }
