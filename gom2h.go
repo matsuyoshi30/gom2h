@@ -14,6 +14,9 @@ func Run(input []byte) ([]byte, error) {
 
 	conved := make([]Line, 0)
 	for _, line := range bytes.Split(input, nl) {
+		if len(line) == 0 {
+			continue
+		}
 		l, err := conv(line)
 		if err != nil {
 			return nil, err
