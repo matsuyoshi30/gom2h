@@ -9,8 +9,14 @@ As a cli tool
 ```
 $ go get -u github.com/matsuyoshi30/gom2h/cmd/gom2h # Installation
 
-$ gom2h <markdown filename>
+$ gom2h <path/to/markdownfile>
+
+$ gom2h -css <path/to/cssfile> <path/to/markdownfile> # specify css
 ```
+
+[default css](https://github.com/sindresorhus/github-markdown-css)
+
+---
 
 As a go library
 

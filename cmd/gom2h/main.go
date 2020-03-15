@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,23 +23,10 @@ const (
 	exitNG
 )
 
-var (
-	tmpl1 = []byte(`<!DOCTYPE html>
-<html>
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/agate.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-</head>
-<body>
-
-`)
-	tmpl2 = []byte(`
-
-</body>
-</html>
-`)
-)
+type Page struct {
+	Stylesheet template.CSS
+	Content    template.HTML
+}
 
 func run(args []string) int {
 	fs := flag.NewFlagSet(name, flag.ContinueOnError)
@@ -48,6 +36,8 @@ func run(args []string) int {
 		flag.PrintDefaults()
 	}
 
+	var cssfile string
+	fs.StringVar(&cssfile, "css", "", "path to css file")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			return exitOK
@@ -74,8 +64,28 @@ func run(args []string) int {
 		return exitNG
 	}
 
+	// read css
+	var style []byte
+	if cssfile != "" {
+		style, err = ioutil.ReadFile(filepath.Join(wd, cssfile))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "could not read css: %v\n", err)
+			return exitNG
+		}
+	} else {
+		style = css()
+	}
+
 	// run gom2h
 	out, err := gom2h.Run(b)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
+		return exitNG
+	}
+
+	page := Page{Stylesheet: template.CSS(style), Content: template.HTML(out)}
+
+	tmpl, err := template.New("index").Parse(index)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
 		return exitNG
@@ -88,15 +98,7 @@ func run(args []string) int {
 		return exitNG
 	}
 	writer := bufio.NewWriter(outFile)
-	if _, err = writer.Write(tmpl1); err != nil {
-		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
-		return exitNG
-	}
-	if _, err = writer.Write(out); err != nil {
-		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
-		return exitNG
-	}
-	if _, err = writer.Write(tmpl2); err != nil {
+	if err = tmpl.Execute(writer, page); err != nil {
 		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
 		return exitNG
 	}

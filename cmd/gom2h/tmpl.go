@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+package main
+
+const index = `<!DOCTYPE html>
 <html>
   <head>
  		<meta charset="utf-8">
@@ -7,10 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
     <style>
-      body {
-    background: #ffffff;
-}
-
+      {{ .Stylesheet }}
     </style>
 	  <style>
  			body {
@@ -29,18 +28,7 @@
   </head>
   <body>
     <article class="markdown-body">
-      <h2>Header2</h2>
-<p><em>emphasis</em></p>
-<p><strong>strong</strong></p>
-<ul>
-<li>list1</li>
-<li>list2</li>
-<ul>
-<li>list2-1</li>
-<li>list2-2</li>
-</ul>
-<li>list3</li>
-</ul>
+      {{ .Content }}
     </article>
   </body>
-</html>
+</html>`

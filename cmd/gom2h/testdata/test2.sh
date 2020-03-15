@@ -1,2 +1,2 @@
 #!/bin/bash
-../gom2h test2.md
+../gom2h -css test.css test2.md
