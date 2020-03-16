@@ -37,7 +37,9 @@ func run(args []string) int {
 	}
 
 	var cssfile string
+	var tmplfile string
 	fs.StringVar(&cssfile, "css", "", "path to css file")
+	fs.StringVar(&tmplfile, "tmpl", "", "path to template file")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			return exitOK
@@ -85,7 +87,18 @@ func run(args []string) int {
 
 	page := Page{Stylesheet: template.CSS(style), Content: template.HTML(out)}
 
-	tmpl, err := template.New("index").Parse(index)
+	var tmplstr string
+	if tmplfile != "" {
+		b, err := ioutil.ReadFile(filepath.Join(wd, tmplfile))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "could not read template file: %v\n", err)
+			return exitNG
+		}
+		tmplstr = string(b)
+	} else {
+		tmplstr = index
+	}
+	tmpl, err := template.New("tmplstr").Parse(tmplstr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unexpected error: %v\n", err)
 		return exitNG
