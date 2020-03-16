@@ -47,6 +47,8 @@ type Line struct {
 	dep int
 }
 
+// https://play.golang.org/p/igrR4P6blOD
+
 var (
 	headerExp     = regexp.MustCompile(`^(#){1,6} (.+)`)
 	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
