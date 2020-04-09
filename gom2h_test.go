@@ -210,6 +210,12 @@ code fence
 fmt.Println("Hello world")
 ` + "```", []byte(`<pre><code class="go">fmt.Println("Hello world")
 </code></pre>`)},
+		{"```" + `
+- List1
+- List2
+` + "```", []byte(`<pre><code>- List1
+- List2
+</code></pre>`)},
 	}
 
 	for _, tt := range testcases {
