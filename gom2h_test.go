@@ -216,6 +216,18 @@ fmt.Println("Hello world")
 ` + "```", []byte(`<pre><code>- List1
 - List2
 </code></pre>`)},
+		{"```" + `
+## header2
+#### header4
+` + "```", []byte(`<pre><code>## header2
+#### header4
+</code></pre>`)},
+		{"```" + `
+> blockquote
+>> blockquote2
+` + "```", []byte(`<pre><code>&gt; blockquote
+&gt;&gt; blockquote2
+</code></pre>`)},
 	}
 
 	for _, tt := range testcases {

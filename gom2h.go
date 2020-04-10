@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 var nl = []byte("\n")
@@ -179,19 +180,23 @@ func render(lines []Line) []byte {
 		switch line.ty {
 		case Header:
 			if inCodeFence {
-				ret = append(ret, []byte(fmt.Sprintf(`%s`, line.val))...)
+				ret = append(ret, []byte(fmt.Sprintf(`%s %s`, strings.Repeat("#", line.lv), line.val))...)
 			} else {
 				ret = append(ret, []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))...)
 			}
 
 		case Blockquote:
-			var stag string
-			var ctag string
-			for i := 0; i < line.lv; i++ {
-				stag = fmt.Sprintf(`<blockquote>%s`, stag)
-				ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+			if inCodeFence {
+				ret = append(ret, []byte(fmt.Sprintf(`%s%s`, strings.Repeat("&gt;", line.lv), line.val))...)
+			} else {
+				var stag string
+				var ctag string
+				for i := 0; i < line.lv; i++ {
+					stag = fmt.Sprintf(`<blockquote>%s`, stag)
+					ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+				}
+				ret = append(ret, []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))...)
 			}
-			ret = append(ret, []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))...)
 
 		case List:
 			if inCodeFence {
