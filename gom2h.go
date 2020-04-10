@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 var nl = []byte("\n")
@@ -178,46 +179,58 @@ func render(lines []Line) []byte {
 		// render html
 		switch line.ty {
 		case Header:
-			ret = append(ret, []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))...)
+			if inCodeFence {
+				ret = append(ret, []byte(fmt.Sprintf(`%s %s`, strings.Repeat("#", line.lv), line.val))...)
+			} else {
+				ret = append(ret, []byte(fmt.Sprintf(`<h%d>%s</h%d>`, line.lv, line.val, line.lv))...)
+			}
 
 		case Blockquote:
-			var stag string
-			var ctag string
-			for i := 0; i < line.lv; i++ {
-				stag = fmt.Sprintf(`<blockquote>%s`, stag)
-				ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+			if inCodeFence {
+				ret = append(ret, []byte(fmt.Sprintf(`%s%s`, strings.Repeat("&gt;", line.lv), line.val))...)
+			} else {
+				var stag string
+				var ctag string
+				for i := 0; i < line.lv; i++ {
+					stag = fmt.Sprintf(`<blockquote>%s`, stag)
+					ctag = fmt.Sprintf(`%s</blockquote>`, ctag)
+				}
+				ret = append(ret, []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))...)
 			}
-			ret = append(ret, []byte(fmt.Sprintf(`%s<p>%s</p>%s`, stag, bytes.TrimSpace(line.val), ctag))...)
 
 		case List:
-			if (idx > 0 && lines[idx-1].ty != List) || idx == 0 {
-				ret = append(ret, []byte(`<ul>`)...)
-				ret = newline(ret)
-			}
+			if inCodeFence {
+				ret = append(ret, []byte(fmt.Sprintf(`- %s`, line.val))...)
+			} else {
+				if (idx > 0 && lines[idx-1].ty != List) || idx == 0 {
+					ret = append(ret, []byte(`<ul>`)...)
+					ret = newline(ret)
+				}
 
-			if idx > 0 && lines[idx-1].dep < line.dep {
-				ret = append(ret, []byte(`<ul>`)...)
-				ret = newline(ret)
-			}
+				if idx > 0 && lines[idx-1].dep < line.dep {
+					ret = append(ret, []byte(`<ul>`)...)
+					ret = newline(ret)
+				}
 
-			ret = append(ret, []byte(fmt.Sprintf(`<li>%s</li>`, line.val))...)
+				ret = append(ret, []byte(fmt.Sprintf(`<li>%s</li>`, line.val))...)
 
-			if idx < len(lines)-1 && line.dep > lines[idx+1].dep {
-				for d := line.dep - lines[idx+1].dep; d > 0; d-- {
+				if idx < len(lines)-1 && line.dep > lines[idx+1].dep {
+					for d := line.dep - lines[idx+1].dep; d > 0; d-- {
+						ret = newline(ret)
+						ret = append(ret, []byte(`</ul>`)...)
+					}
+				}
+				if idx == len(lines)-1 && line.dep > 0 {
+					for d := line.dep; d > 0; d-- {
+						ret = newline(ret)
+						ret = append(ret, []byte(`</ul>`)...)
+					}
+				}
+
+				if (idx < len(lines)-1 && lines[idx+1].ty != List) || idx == len(lines)-1 {
 					ret = newline(ret)
 					ret = append(ret, []byte(`</ul>`)...)
 				}
-			}
-			if idx == len(lines)-1 && line.dep > 0 {
-				for d := line.dep; d > 0; d-- {
-					ret = newline(ret)
-					ret = append(ret, []byte(`</ul>`)...)
-				}
-			}
-
-			if (idx < len(lines)-1 && lines[idx+1].ty != List) || idx == len(lines)-1 {
-				ret = newline(ret)
-				ret = append(ret, []byte(`</ul>`)...)
 			}
 
 		case CodeFence:
