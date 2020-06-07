@@ -78,6 +78,7 @@ func TestLink(t *testing.T) {
 		input    string
 		expected []byte
 	}{
+		{`![image](/path/to/image)`, []byte(`<p><img src="/path/to/image" alt="image" /></p>`)},
 		{`[link](https://example.org/)`, []byte(`<p><a href="https://example.org/">link</a></p>`)},
 		{`This is [link](https://example.org/) test.`, []byte(`<p>This is <a href="https://example.org/">link</a> test.</p>`)},
 	}

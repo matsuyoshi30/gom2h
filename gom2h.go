@@ -55,6 +55,7 @@ var (
 	blockquoteExp = regexp.MustCompile(`^(>+)(.+)`)
 	emphasisExp   = regexp.MustCompile(`.*([\*]([^\*]+)[\*]).*|.*([_]([^_]+)[_]).*`)
 	strongExp     = regexp.MustCompile(`.*([\*]{2}([^\*]+)[\*]{2}).*|.*([_]{2}([^_]+)[_]{2}).*`)
+	imageExp      = regexp.MustCompile(`^!.*(\[.+\])(\(.+\)).*`)
 	linkExp       = regexp.MustCompile(`.*(\[.+\])(\(.+\)).*`)
 	listExp       = regexp.MustCompile(`^ *(- )(.+)`)
 	codespanExp   = regexp.MustCompile("[^`]*`([^`]+)`[^`]*")
@@ -109,6 +110,14 @@ func conv(line []byte) (Line, error) {
 		aft := []byte(fmt.Sprintf(`%s`, line[c:]))
 
 		line = append(bef, append(target, aft...)...)
+	}
+
+	for imageExp.Match(line) {
+		loc := linkExp.FindSubmatchIndex(line)
+		// ![image](/path/to/image)
+		// -> line[loc[2]:loc[3]] // [image]
+		// -> line[loc[4]:loc[5]] // (/path/to/image)
+		line = []byte(fmt.Sprintf(`<img src="%s" alt="%s" />`, line[loc[4]+1:loc[5]-1], line[loc[2]+1:loc[3]-1]))
 	}
 
 	for linkExp.Match(line) {
