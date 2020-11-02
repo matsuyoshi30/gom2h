@@ -230,6 +230,10 @@ fmt.Println("Hello world")
 ` + "```", []byte(`<pre><code>&gt; blockquote
 &gt;&gt; blockquote2
 </code></pre>`)},
+		{"```" + `
+__strong__
+` + "```", []byte(`<pre><code>__strong__
+</code></pre>`)},
 	}
 
 	for _, tt := range testcases {

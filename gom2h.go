@@ -62,6 +62,8 @@ var (
 	codefenceExp  = regexp.MustCompile("^```(.*)")
 )
 
+var inCodeBlock = false
+
 func conv(line []byte) (Line, error) {
 	inCodeSpan := false
 
@@ -74,7 +76,7 @@ func conv(line []byte) (Line, error) {
 		inCodeSpan = true
 	}
 
-	if !inCodeSpan {
+	if !inCodeSpan && !inCodeBlock {
 		for strongExp.Match(line) {
 			loc := strongExp.FindSubmatchIndex(line)
 			// This is *em* sample
@@ -176,6 +178,7 @@ func conv(line []byte) (Line, error) {
 		if loc[2] != loc[3] {
 			lang = line[loc[2]:loc[3]]
 		}
+		inCodeBlock = !inCodeBlock
 		return Line{CodeFence, 0, lang, 0}, nil
 	}
 
