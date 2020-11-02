@@ -63,81 +63,85 @@ var (
 )
 
 func conv(line []byte) (Line, error) {
+	inCodeSpan := false
+
 	// inline
-	for strongExp.Match(line) {
-		loc := strongExp.FindSubmatchIndex(line)
-		// This is *em* sample
-		// -> line[loc[2]:loc[3]] // **st**
-		// -> line[loc[4]:loc[5]] // st
-		// -> line[loc[6]:loc[7]] // __st__
-		// -> line[loc[8]:loc[9]] // em
-		s := loc[2]
-		c := loc[3]
-		ts := loc[4]
-		tc := loc[5]
-		if s == -1 && c == -1 && ts == -1 && tc == -1 {
-			s = loc[6]
-			c = loc[7]
-			ts = loc[8]
-			tc = loc[9]
-		}
-		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:s]))
-		target := []byte(fmt.Sprintf(`<strong>%s</strong>`, line[ts:tc]))
-		aft := []byte(fmt.Sprintf(`%s`, line[c:]))
-
-		line = append(bef, append(target, aft...)...)
-	}
-
-	for emphasisExp.Match(line) {
-		loc := emphasisExp.FindSubmatchIndex(line)
-		// This is *em* sample
-		// -> line[loc[2]:loc[3]] // *em*
-		// -> line[loc[4]:loc[5]] // em
-		// -> line[loc[6]:loc[7]] // _em_
-		// -> line[loc[8]:loc[9]] // em
-		s := loc[2]
-		c := loc[3]
-		ts := loc[4]
-		tc := loc[5]
-		if s == -1 && c == -1 && ts == -1 && tc == -1 {
-			s = loc[6]
-			c = loc[7]
-			ts = loc[8]
-			tc = loc[9]
-		}
-		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:s]))
-		target := []byte(fmt.Sprintf(`<em>%s</em>`, line[ts:tc]))
-		aft := []byte(fmt.Sprintf(`%s`, line[c:]))
-
-		line = append(bef, append(target, aft...)...)
-	}
-
-	for imageExp.Match(line) {
-		loc := linkExp.FindSubmatchIndex(line)
-		// ![image](/path/to/image)
-		// -> line[loc[2]:loc[3]] // [image]
-		// -> line[loc[4]:loc[5]] // (/path/to/image)
-		line = []byte(fmt.Sprintf(`<img src="%s" alt="%s" />`, line[loc[4]+1:loc[5]-1], line[loc[2]+1:loc[3]-1]))
-	}
-
-	for linkExp.Match(line) {
-		loc := linkExp.FindSubmatchIndex(line)
-		// This is [link](https://example.org/)
-		// -> line[loc[2]:loc[3]] // [link]
-		// -> line[loc[4]:loc[5]] // (https://example.org/)
-		bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:loc[2]]))
-		target := []byte(fmt.Sprintf(`<a href="%s">%s</a>`, line[loc[4]+1:loc[5]-1], line[loc[2]+1:loc[3]-1]))
-		aft := []byte(fmt.Sprintf(`%s`, line[loc[5]:]))
-
-		line = append(bef, append(target, aft...)...)
-
-	}
-
 	for codespanExp.Match(line) {
 		loc := codespanExp.FindSubmatchIndex(line)
 		// This is `cs sample`.
 		// -> line[loc[2]:loc[3]] // cs sample
 		line = []byte(fmt.Sprintf(`%s<code>%s</code>%s`, line[:loc[2]-1], line[loc[2]:loc[3]], line[loc[3]+1:]))
+		inCodeSpan = true
+	}
+
+	if !inCodeSpan {
+		for strongExp.Match(line) {
+			loc := strongExp.FindSubmatchIndex(line)
+			// This is *em* sample
+			// -> line[loc[2]:loc[3]] // **st**
+			// -> line[loc[4]:loc[5]] // st
+			// -> line[loc[6]:loc[7]] // __st__
+			// -> line[loc[8]:loc[9]] // em
+			s := loc[2]
+			c := loc[3]
+			ts := loc[4]
+			tc := loc[5]
+			if s == -1 && c == -1 && ts == -1 && tc == -1 {
+				s = loc[6]
+				c = loc[7]
+				ts = loc[8]
+				tc = loc[9]
+			}
+			bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:s]))
+			target := []byte(fmt.Sprintf(`<strong>%s</strong>`, line[ts:tc]))
+			aft := []byte(fmt.Sprintf(`%s`, line[c:]))
+
+			line = append(bef, append(target, aft...)...)
+		}
+
+		for emphasisExp.Match(line) {
+			loc := emphasisExp.FindSubmatchIndex(line)
+			// This is *em* sample
+			// -> line[loc[2]:loc[3]] // *em*
+			// -> line[loc[4]:loc[5]] // em
+			// -> line[loc[6]:loc[7]] // _em_
+			// -> line[loc[8]:loc[9]] // em
+			s := loc[2]
+			c := loc[3]
+			ts := loc[4]
+			tc := loc[5]
+			if s == -1 && c == -1 && ts == -1 && tc == -1 {
+				s = loc[6]
+				c = loc[7]
+				ts = loc[8]
+				tc = loc[9]
+			}
+			bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:s]))
+			target := []byte(fmt.Sprintf(`<em>%s</em>`, line[ts:tc]))
+			aft := []byte(fmt.Sprintf(`%s`, line[c:]))
+
+			line = append(bef, append(target, aft...)...)
+		}
+
+		for imageExp.Match(line) {
+			loc := linkExp.FindSubmatchIndex(line)
+			// ![image](/path/to/image)
+			// -> line[loc[2]:loc[3]] // [image]
+			// -> line[loc[4]:loc[5]] // (/path/to/image)
+			line = []byte(fmt.Sprintf(`<img src="%s" alt="%s" />`, line[loc[4]+1:loc[5]-1], line[loc[2]+1:loc[3]-1]))
+		}
+
+		for linkExp.Match(line) {
+			loc := linkExp.FindSubmatchIndex(line)
+			// This is [link](https://example.org/)
+			// -> line[loc[2]:loc[3]] // [link]
+			// -> line[loc[4]:loc[5]] // (https://example.org/)
+			bef := []byte(fmt.Sprintf(`%s`, line[loc[0]:loc[2]]))
+			target := []byte(fmt.Sprintf(`<a href="%s">%s</a>`, line[loc[4]+1:loc[5]-1], line[loc[2]+1:loc[3]-1]))
+			aft := []byte(fmt.Sprintf(`%s`, line[loc[5]:]))
+
+			line = append(bef, append(target, aft...)...)
+		}
 	}
 
 	// block

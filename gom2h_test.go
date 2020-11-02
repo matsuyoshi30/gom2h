@@ -185,6 +185,7 @@ func TestCodeSpan(t *testing.T) {
 	}{
 		{"`cs sample`", []byte(`<p><code>cs sample</code></p>`)},
 		{"This is `cs sample` sentence.", []byte(`<p>This is <code>cs sample</code> sentence.</p>`)},
+		{"This is `__emphasis in codespan__` sentence.", []byte(`<p>This is <code>__emphasis in codespan__</code> sentence.</p>`)},
 	}
 
 	for _, tt := range testcases {
