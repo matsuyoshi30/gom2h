@@ -246,3 +246,29 @@ __strong__
 		}
 	}
 }
+
+func TestHTMLBlock(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []byte
+	}{
+		{
+			`<blockquote>June 19, 2021</blockquote>`,
+			[]byte(`<blockquote>June 19, 2021</blockquote>`),
+		},
+		{
+			`<blockquote>_June 19, 2021_</blockquote>`,
+			[]byte(`<blockquote>_June 19, 2021_</blockquote>`),
+		},
+	}
+
+	for _, tt := range testcases {
+		actual, err := Run([]byte(tt.input))
+		if err != nil {
+			t.Errorf("unexpected err: %v\n", err)
+		}
+		if !bytes.Equal(tt.expected, actual) {
+			t.Errorf("expected %v, but got %v\n", string(tt.expected), string(actual))
+		}
+	}
+}

@@ -38,6 +38,7 @@ const (
 	List
 	CodeFence
 	Paragraph
+	HTMLBlock
 	NewLine
 )
 
@@ -66,6 +67,12 @@ var inCodeBlock = false
 
 func conv(line []byte) (Line, error) {
 	inCodeSpan := false
+
+	// raw html
+	// TODO: support other html tags
+	if bytes.HasPrefix(line, []byte("<blockquote")) {
+		return Line{HTMLBlock, 0, line, 0}, nil
+	}
 
 	// inline
 	for codespanExp.Match(line) {
@@ -261,6 +268,9 @@ func render(lines []Line) []byte {
 			}
 			inCodeFence = !inCodeFence
 			continue
+
+		case HTMLBlock:
+			ret = append(ret, line.val...)
 
 		case Paragraph:
 			if !inCodeFence {
